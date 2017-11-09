@@ -18,8 +18,8 @@ import twitter_info # same deal as always...
 import json
 import sqlite3
 
-## Your name:
-## The names of anyone you worked with on this project:
+## Your name: Julia Pezzullo
+## The names of anyone you worked with on this project: Maheen Kahn, David Piper
 
 #####
 
