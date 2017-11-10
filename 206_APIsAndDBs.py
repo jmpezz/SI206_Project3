@@ -48,13 +48,17 @@ api = tweepy.API(auth, parser=tweepy.parsers.JSONParser())
 ## write the rest of the code in this file.
 
 CACHE_FNAME = "206_APIsAndDBs_cache.json"
-# Put the rest of your caching setup here:
-
-
+try:
+	cache_file = open(CACHE_FNAME, 'r')
+	cache_data = cache_file.read()
+	cache_file.close()
+	CACHE_DICTION = json.loads(cache_data)
+except:
+	CACHE_DICTION = {}
 
 # Define your function get_user_tweets here:
-
-
+def get_user_tweets(tweet):
+	pass
 
 
 
