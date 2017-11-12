@@ -49,19 +49,30 @@ api = tweepy.API(auth, parser=tweepy.parsers.JSONParser())
 
 CACHE_FNAME = "206_APIsAndDBs_cache.json"
 # Put the rest of your caching setup here:
-
-
+try:
+	cache_file = open(CACHE_FNAME, 'r') #attempting to read data from file
+	cache_data = cache_file.read() #if data there, get into string
+	cache_file.close() #close the file, data is now in dictionary
+	CACHE_DICTION = json.loads(cache_data) #load data into dictionary
+except:
+	CACHE_DICTION = {}
 
 # Define your function get_user_tweets here:
-
-
-
-
+def get_user_tweets(user):
+	if user in CACHE_DICTION:
+		results = CACHE_DICTION[user]
+	else:
+		results = api.user_timeline(user, count = 20) #gets last 20 tweets of specified user
+		CACHE_DICTION[user] = results
+		dump_cache = json.dumps(CACHE_DICTION)
+		file = open(CACHE_FNAME, 'w') #updates json file 
+		file.write(dump_cache)
+		file.close()
+	return results
 
 # Write an invocation to the function for the "umich" user timeline and 
 # save the result in a variable called umich_tweets:
-
-
+umich_tweets = get_user_tweets('@umich')
 
 
 ## Task 2 - Creating database and loading data into database
@@ -72,13 +83,20 @@ CACHE_FNAME = "206_APIsAndDBs_cache.json"
 # mentioned in the umich timeline, that Twitter user's info should be 
 # in the Users table, etc.
 
+conn = sqlite3.connect('206_APIsAndDBs.sqlite')
+cur = conn.cursor()
 
+cur.execute('DROP TABLE IF EXISTS Users') #creates table Users
+cur.execute('CREATE TABLE Users (user_id TEXT PRIMARY KEY, screen_name TEXT, num_favs INTEGER, description TEXT)')
 
 ## You should load into the Tweets table: 
 # Info about all the tweets (at least 20) that you gather from the 
 # umich timeline.
 # NOTE: Be careful that you have the correct user ID reference in 
 # the user_id column! See below hints.
+
+cur.execute('DROP TABLE IF EXISTS Tweets') #creates table Tweets
+cur.execute('CREATE TABLE Tweets (tweet_id TEXT PRIMARY KEY, text TEXT, user_posted TEXT, time_posted DATETIME, retweets INTEGER)')
 
 
 ## HINT: There's a Tweepy method to get user info, so when you have a 
