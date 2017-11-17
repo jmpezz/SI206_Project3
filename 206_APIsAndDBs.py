@@ -116,14 +116,16 @@ cur.execute('CREATE TABLE Tweets (tweet_id TEXT PRIMARY KEY, text TEXT, user_pos
 
 # Make a query to select all of the records in the Users database. 
 # Save the list of tuples in a variable called users_info.
-
-users_info = True
+cur.execute('SELECT * FROM Users')
+users_info = cur.fetchall()
 
 # Make a query to select all of the user screen names from the database. 
 # Save a resulting list of strings (NOT tuples, the strings inside them!) 
 # in the variable screen_names. HINT: a list comprehension will make 
 # this easier to complete! 
-screen_names = True
+cur.execute('SELECT screen_name FROM Users')
+sn_tup = cur.fetchall()
+screen_names = [x[0] for x in sn_tup]
 
 
 # Make a query to select all of the tweets (full rows of tweet information)
