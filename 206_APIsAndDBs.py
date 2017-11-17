@@ -74,7 +74,6 @@ def get_user_tweets(user):
 # save the result in a variable called umich_tweets:
 umich_tweets = get_user_tweets('@umich')
 
-
 ## Task 2 - Creating database and loading data into database
 ## You should load into the Users table:
 # The umich user, and all of the data about users that are mentioned 
@@ -89,6 +88,10 @@ cur = conn.cursor()
 cur.execute('DROP TABLE IF EXISTS Users') #creates table Users
 cur.execute('CREATE TABLE Users (user_id TEXT PRIMARY KEY, screen_name TEXT, num_favs INTEGER, description TEXT)')
 
+for user in umich_tweets:
+	for i in user['entities']['user_mentions']:
+		x = api.get_user()
+
 ## You should load into the Tweets table: 
 # Info about all the tweets (at least 20) that you gather from the 
 # umich timeline.
@@ -98,7 +101,11 @@ cur.execute('CREATE TABLE Users (user_id TEXT PRIMARY KEY, screen_name TEXT, num
 cur.execute('DROP TABLE IF EXISTS Tweets') #creates table Tweets
 cur.execute('CREATE TABLE Tweets (tweet_id TEXT PRIMARY KEY, text TEXT, user_posted TEXT, time_posted DATETIME, retweets INTEGER)')
 
+for tweet in umich_tweets:
+	tw_tup = tweet['id_str'], tweet['text'], tweet['user']['id_str'], tweet['created_at'], tweet['retweet_count']
+	cur.execute('INSERT INTO Tweets (tweet_id, user_posted, time_posted, retweets) VALUES (?, ?, ?, ?, ?)', tw_tup)
 
+conn.commit()
 ## HINT: There's a Tweepy method to get user info, so when you have a 
 ## user id or screenname you can find alllll the info you want about 
 ## the user.
@@ -127,36 +134,37 @@ cur.execute('SELECT screen_name FROM Users')
 sn_tup = cur.fetchall()
 screen_names = [x[0] for x in sn_tup]
 
-
 # Make a query to select all of the tweets (full rows of tweet information)
 # that have been retweeted more than 10 times. Save the result 
 # (a list of tuples, or an empty list) in a variable called retweets.
-retweets = True
-
+cur.execute ('SELECT * FROM Tweets WHERE retweets > 10')
+retweets = cur.fetchall()
 
 # Make a query to select all the descriptions (descriptions only) of 
 # the users who have favorited more than 500 tweets. Access all those 
 # strings, and save them in a variable called favorites, 
 # which should ultimately be a list of strings.
-favorites = True
-
+cur.execute('SELECT description FROM Users WHERE num_favs > 500')
+des_tup = cur.fetchall()
+favorites = [i[0] for i in des_tup]
 
 # Make a query using an INNER JOIN to get a list of tuples with 2 
 # elements in each tuple: the user screenname and the text of the 
 # tweet. Save the resulting list of tuples in a variable called joined_data2.
-joined_data = True
+cur.execute('SELECT Users.screen_name, Tweets.tweet_text FROM Users INNER JOIN Tweets ON Users.user_id = Tweets.user_posted')
+joined_data = cur.fetchall()
 
 # Make a query using an INNER JOIN to get a list of tuples with 2 
 # elements in each tuple: the user screenname and the text of the 
 # tweet in descending order based on retweets. Save the resulting 
 # list of tuples in a variable called joined_data2.
-
-joined_data2 = True
-
+cur.execute('SELECT Users.screen_name, Tweets.tweet_text FROM Users INNER JOIN Tweets ON Users.user_id = Tweets.user_posted ORDER BY Tweets.retweets DESC')
+joined_data2 = cur.fetchall()
 
 ### IMPORTANT: MAKE SURE TO CLOSE YOUR DATABASE CONNECTION AT THE END 
 ### OF THE FILE HERE SO YOU DO NOT LOCK YOUR DATABASE (it's fixable, 
 ### but it's a pain). ###
+conn.close()
 
 ###### TESTS APPEAR BELOW THIS LINE ######
 ###### Note that the tests are necessary to pass, but not sufficient -- 
