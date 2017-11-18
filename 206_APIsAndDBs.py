@@ -89,8 +89,8 @@ cur.execute('DROP TABLE IF EXISTS Users') #creates table Users
 cur.execute('CREATE TABLE Users (user_id TEXT PRIMARY KEY, screen_name TEXT, num_favs INTEGER, description TEXT)')
 
 for user in umich_tweets:
-	for i in user['entities']['user_mentions']:
-		x = api.get_user()
+	user_tup = (user['user']['id'], user['user']['screename'], user['user']['favourites_count'], user['user']['description'])
+	cur.execute = ('INSERT INTO Users user_id, screen_name, num_favs, description) VALUES (?, ?, ?, ?)', user_tup)
 
 ## You should load into the Tweets table: 
 # Info about all the tweets (at least 20) that you gather from the 
@@ -101,9 +101,9 @@ for user in umich_tweets:
 cur.execute('DROP TABLE IF EXISTS Tweets') #creates table Tweets
 cur.execute('CREATE TABLE Tweets (tweet_id TEXT PRIMARY KEY, text TEXT, user_posted TEXT, time_posted DATETIME, retweets INTEGER)')
 
-for tweet in umich_tweets:
-	tw_tup = tweet['id_str'], tweet['text'], tweet['user']['id_str'], tweet['created_at'], tweet['retweet_count']
-	cur.execute('INSERT INTO Tweets (tweet_id, user_posted, time_posted, retweets) VALUES (?, ?, ?, ?, ?)', tw_tup)
+for tweet in umich_tweets: #this makes a tuple of all tweet info
+	tw_tup = tweet['id_str'], tweet['text'], tweet['user']['id_str'], tweet['created_at'], tweet['retweet_count'] 
+	cur.execute('INSERT INTO Tweets (tweet_id, text, user_posted, time_posted, retweets) VALUES (?, ?, ?, ?, ?)', tw_tup)
 
 conn.commit()
 ## HINT: There's a Tweepy method to get user info, so when you have a 
