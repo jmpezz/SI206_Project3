@@ -88,9 +88,9 @@ cur = conn.cursor()
 cur.execute('DROP TABLE IF EXISTS Users') #creates table Users
 cur.execute('CREATE TABLE Users (user_id TEXT PRIMARY KEY, screen_name TEXT, num_favs INTEGER, description TEXT)')
 
-for user in umich_tweets:
-	user_tup = (user['user']['id'], user['user']['screename'], user['user']['favourites_count'], user['user']['description'])
-	cur.execute = ('INSERT INTO Users user_id, screen_name, num_favs, description) VALUES (?, ?, ?, ?)', user_tup)
+for user in umich_tweets: #makes tuple of all user info
+	user_tup = (user['user']['id'], user['user']['screen_name'], user['user']['favourites_count'], user['user']['description'])
+	cur.execute('INSERT INTO Users (user_id, screen_name, num_favs, description) VALUES (?, ?, ?, ?)', user_tup)
 
 ## You should load into the Tweets table: 
 # Info about all the tweets (at least 20) that you gather from the 
@@ -151,14 +151,14 @@ favorites = [i[0] for i in des_tup]
 # Make a query using an INNER JOIN to get a list of tuples with 2 
 # elements in each tuple: the user screenname and the text of the 
 # tweet. Save the resulting list of tuples in a variable called joined_data2.
-cur.execute('SELECT Users.screen_name, Tweets.tweet_text FROM Users INNER JOIN Tweets ON Users.user_id = Tweets.user_posted')
+cur.execute('SELECT Users.screen_name, Tweets.tweet_text FROM Users INNER JOIN Tweets')
 joined_data = cur.fetchall()
 
 # Make a query using an INNER JOIN to get a list of tuples with 2 
 # elements in each tuple: the user screenname and the text of the 
 # tweet in descending order based on retweets. Save the resulting 
 # list of tuples in a variable called joined_data2.
-cur.execute('SELECT Users.screen_name, Tweets.tweet_text FROM Users INNER JOIN Tweets ON Users.user_id = Tweets.user_posted ORDER BY Tweets.retweets DESC')
+cur.execute('SELECT Users.screen_name, Tweets.tweet_text FROM Users INNER JOIN Tweets ORDER BY Tweets.retweets DESC')
 joined_data2 = cur.fetchall()
 
 ### IMPORTANT: MAKE SURE TO CLOSE YOUR DATABASE CONNECTION AT THE END 
