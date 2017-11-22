@@ -88,9 +88,17 @@ cur = conn.cursor()
 cur.execute('DROP TABLE IF EXISTS Users') #creates table Users
 cur.execute('CREATE TABLE Users (user_id TEXT PRIMARY KEY, screen_name TEXT, num_favs INTEGER, description TEXT)')
 
+cur.execute('DROP TABLE IF EXISTS Tweets') #creates table Tweets
+cur.execute('CREATE TABLE Tweets (tweet_id TEXT PRIMARY KEY, text TEXT, user_posted TEXT, time_posted DATETIME, retweets INTEGER)')
+
 for user in umich_tweets: #makes tuple of all user info
-	user_tup = (user['user']['id'], user['user']['screen_name'], user['user']['favourites_count'], user['user']['description'])
-	cur.execute('INSERT INTO Users (user_id, screen_name, num_favs, description) VALUES (?, ?, ?, ?)', user_tup)
+	user_tup = (user['user']['id_str'], user['user']['screen_name'], user['user']['favourites_count'], user['user']['description'])
+	cur.execute('INSERT or IGNORE INTO Users (user_id, screen_name, num_favs, description) VALUES (?, ?, ?, ?)', user_tup)
+
+	for us in user['entities']['user_mentions']:
+		us_results = api.get_user(us['screen_name'])
+		other_tup = (us_results['id_str'], us_results['screen_name'], us_results['favourites_count'], us_results['description'])
+		cur.execute('INSERT or IGNORE INTO Users (user_id, screen_name, num_favs, description) VALUES (?, ?, ?, ?)', other_tup)
 
 ## You should load into the Tweets table: 
 # Info about all the tweets (at least 20) that you gather from the 
@@ -98,11 +106,8 @@ for user in umich_tweets: #makes tuple of all user info
 # NOTE: Be careful that you have the correct user ID reference in 
 # the user_id column! See below hints.
 
-cur.execute('DROP TABLE IF EXISTS Tweets') #creates table Tweets
-cur.execute('CREATE TABLE Tweets (tweet_id TEXT PRIMARY KEY, text TEXT, user_posted TEXT, time_posted DATETIME, retweets INTEGER)')
-
 for tweet in umich_tweets: #this makes a tuple of all tweet info
-	tw_tup = tweet['id_str'], tweet['text'], tweet['user']['id_str'], tweet['created_at'], tweet['retweet_count'] 
+	tw_tup = (tweet['id_str'], tweet['text'], tweet['user']['id'], tweet['created_at'], tweet['retweet_count']) 
 	cur.execute('INSERT INTO Tweets (tweet_id, text, user_posted, time_posted, retweets) VALUES (?, ?, ?, ?, ?)', tw_tup)
 
 conn.commit()
@@ -164,6 +169,7 @@ joined_data2 = cur.fetchall()
 ### IMPORTANT: MAKE SURE TO CLOSE YOUR DATABASE CONNECTION AT THE END 
 ### OF THE FILE HERE SO YOU DO NOT LOCK YOUR DATABASE (it's fixable, 
 ### but it's a pain). ###
+cur.close()
 conn.close()
 
 ###### TESTS APPEAR BELOW THIS LINE ######
