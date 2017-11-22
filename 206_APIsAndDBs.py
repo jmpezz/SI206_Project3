@@ -89,16 +89,16 @@ cur.execute('DROP TABLE IF EXISTS Users') #creates table Users
 cur.execute('CREATE TABLE Users (user_id TEXT PRIMARY KEY, screen_name TEXT, num_favs INTEGER, description TEXT)')
 
 cur.execute('DROP TABLE IF EXISTS Tweets') #creates table Tweets
-cur.execute('CREATE TABLE Tweets (tweet_id TEXT PRIMARY KEY, text TEXT, user_posted TEXT, time_posted DATETIME, retweets INTEGER)')
+cur.execute('CREATE TABLE Tweets (tweet_id TEXT PRIMARY KEY, text TEXT, user_posted TEXT, time_posted DATETIME, retweets INTEGER, FOREIGN KEY(user_posted) REFERENCES Users(user_id))')
 
-for user in umich_tweets: #makes tuple of all user info
+for user in umich_tweets: #makes tuple of all user info and inserts it into database
 	user_tup = (user['user']['id_str'], user['user']['screen_name'], user['user']['favourites_count'], user['user']['description'])
 	cur.execute('INSERT or IGNORE INTO Users (user_id, screen_name, num_favs, description) VALUES (?, ?, ?, ?)', user_tup)
 
 	for us in user['entities']['user_mentions']:
 		us_results = api.get_user(us['screen_name'])
-		other_tup = (us_results['id_str'], us_results['screen_name'], us_results['favourites_count'], us_results['description'])
-		cur.execute('INSERT or IGNORE INTO Users (user_id, screen_name, num_favs, description) VALUES (?, ?, ?, ?)', other_tup)
+		mention_tup = (us_results['id_str'], us_results['screen_name'], us_results['favourites_count'], us_results['description'])
+		cur.execute('INSERT or IGNORE INTO Users (user_id, screen_name, num_favs, description) VALUES (?, ?, ?, ?)', mention_tup)
 
 ## You should load into the Tweets table: 
 # Info about all the tweets (at least 20) that you gather from the 
@@ -106,7 +106,7 @@ for user in umich_tweets: #makes tuple of all user info
 # NOTE: Be careful that you have the correct user ID reference in 
 # the user_id column! See below hints.
 
-for tweet in umich_tweets: #this makes a tuple of all tweet info
+for tweet in umich_tweets: #this makes a tuple of all tweet info and puts it into Database
 	tw_tup = (tweet['id_str'], tweet['text'], tweet['user']['id'], tweet['created_at'], tweet['retweet_count']) 
 	cur.execute('INSERT INTO Tweets (tweet_id, text, user_posted, time_posted, retweets) VALUES (?, ?, ?, ?, ?)', tw_tup)
 
@@ -156,14 +156,14 @@ favorites = [i[0] for i in des_tup]
 # Make a query using an INNER JOIN to get a list of tuples with 2 
 # elements in each tuple: the user screenname and the text of the 
 # tweet. Save the resulting list of tuples in a variable called joined_data2.
-cur.execute('SELECT Users.screen_name, Tweets.tweet_text FROM Users INNER JOIN Tweets')
+cur.execute('SELECT screen_name, text FROM Tweets INNER JOIN Users ON user_posted = user_id')
 joined_data = cur.fetchall()
 
 # Make a query using an INNER JOIN to get a list of tuples with 2 
 # elements in each tuple: the user screenname and the text of the 
 # tweet in descending order based on retweets. Save the resulting 
 # list of tuples in a variable called joined_data2.
-cur.execute('SELECT Users.screen_name, Tweets.tweet_text FROM Users INNER JOIN Tweets ORDER BY Tweets.retweets DESC')
+cur.execute('SELECT screen_name, text FROM Tweets INNER JOIN Users ON user_posted = user_id ORDER BY retweets DESC')
 joined_data2 = cur.fetchall()
 
 ### IMPORTANT: MAKE SURE TO CLOSE YOUR DATABASE CONNECTION AT THE END 
